@@ -17,8 +17,10 @@ import os
 from ament_index_python import get_package_share_directory
 
 from launch import LaunchDescription
-from launch.actions import EmitEvent, RegisterEventHandler, Shutdown
+from launch.actions import EmitEvent, RegisterEventHandler, Shutdown, DeclareLaunchArgument
 from launch.events import matches_action
+from launch.conditions import IfCondition
+from launch.substitutions import LaunchConfiguration
 from launch_pal import get_pal_configuration
 from launch_ros.actions import LifecycleNode, Node
 from launch_ros.events.lifecycle import ChangeState
@@ -35,6 +37,18 @@ def generate_launch_description():
     ld = LaunchDescription()
     config = get_pal_configuration(pkg=pkg, node=node_name, ld=ld)
 
+    auto_configure_arg = DeclareLaunchArgument(
+        'auto_configure',
+        default_value='true',
+        description='If true, the node will transition to Inactive immediately. If false, it stays Unconfigured.'
+    )
+
+    auto_activate_arg = DeclareLaunchArgument(
+        'auto_activate',
+        default_value='true',
+        description='If true, the node will transition to Active immediately. If false, it stays Inactive.'
+    )
+
     node = LifecycleNode(
         package=pkg,
         executable=node_executable,
@@ -48,15 +62,21 @@ def generate_launch_description():
         on_exit=Shutdown()
     )
 
-    configure_event = EmitEvent(event=ChangeState(
-        lifecycle_node_matcher=matches_action(node),
-        transition_id=Transition.TRANSITION_CONFIGURE))
+    configure_event = EmitEvent(
+        condition=IfCondition(LaunchConfiguration('auto_configure')),
+        event=ChangeState(
+            lifecycle_node_matcher=matches_action(node),
+            transition_id=Transition.TRANSITION_CONFIGURE
+        )
+    )
 
     activate_event = RegisterEventHandler(OnStateTransition(
         target_lifecycle_node=node, goal_state='inactive',
         entities=[EmitEvent(event=ChangeState(
             lifecycle_node_matcher=matches_action(node),
-            transition_id=Transition.TRANSITION_ACTIVATE))], handle_once=True))
+            transition_id=Transition.TRANSITION_ACTIVATE))], 
+        handle_once=True),
+        condition=IfCondition(LaunchConfiguration('auto_activate')))
 
     hri_body_detect_analyzer = Node(
         package='diagnostic_aggregator',
@@ -68,8 +88,11 @@ def generate_launch_description():
             os.path.join(get_package_share_directory(pkg), 'config', f'{pkg}_analyzers.yaml')],
     )
 
+    ld.add_action(auto_configure_arg)
+    ld.add_action(auto_activate_arg)
     ld.add_action(node)
     ld.add_action(configure_event)
     ld.add_action(activate_event)
     ld.add_action(hri_body_detect_analyzer)
     return ld
+
