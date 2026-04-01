@@ -1558,37 +1558,6 @@ class MultibodyDetector:
             else:
                 self.image_depth = self.br.imgmsg_to_cv2(depth_img, desired_encoding=self.depth_encoding)
 
-
-
-        # # --- APPLY 180 DEGREE ROTATION ---
-        # rgb_img = cv2.rotate(rgb_img, cv2.ROTATE_180)
-        # if hasattr(self, 'image_depth') and self.image_depth is not None:
-        #     self.image_depth = cv2.rotate(self.image_depth, cv2.ROTATE_180)
-
-        # # Update height and width for internal detector logic
-        # self.img_height, self.img_width = rgb_img.shape[:2]
-
-        # # Update Camera Intrinsics (Move optical center for 180 deg)
-        # # c_x_new = width - c_x_old
-        # # c_y_new = height - c_y_old
-        # self.rgb_info = copy.copy(rgb_info)
-        # self.rgb_info.width = self.img_width
-        # self.rgb_info.height = self.img_height
-        # self.rgb_info.k[2] = self.img_width - rgb_info.k[2]   # New cx
-        # self.rgb_info.k[5] = self.img_height - rgb_info.k[5]  # New cy
-        # if len(self.rgb_info.p) >= 7:
-        #     self.rgb_info.p[2] = self.img_width - rgb_info.p[2]
-        #     self.rgb_info.p[6] = self.img_height - rgb_info.p[6]
-        
-        # self.depth_info = copy.copy(depth_info)
-        # self.depth_info.width = self.img_width
-        # self.depth_info.height = self.img_height
-        # self.depth_info.k[2] = self.img_width - depth_info.k[2]
-        # self.depth_info.k[5] = self.img_height - depth_info.k[5]
-        # # ---------------------------------
-
-
-
         if _builtin_time_to_secs(depth_info.header.stamp) \
                 > _builtin_time_to_secs(rgb_info.header.stamp):
             header = copy.copy(depth_info.header)
@@ -1607,23 +1576,6 @@ class MultibodyDetector:
             rgb_img = self.br.compressed_imgmsg_to_cv2(rgb_img, desired_encoding="bgr8")
         else:
             rgb_img = self.br.imgmsg_to_cv2(rgb_img, desired_encoding="bgr8")
-
-
-
-        # # --- APPLY 180 DEGREE ROTATION ---
-        # rgb_img = cv2.rotate(rgb_img, cv2.ROTATE_180)
-        # self.img_height, self.img_width = rgb_img.shape[:2]
-
-        # # Update Camera Intrinsics
-        # self.rgb_info = copy.copy(rgb_info)
-        # self.rgb_info.k[2] = self.img_width - rgb_info.k[2]
-        # self.rgb_info.k[5] = self.img_height - rgb_info.k[5]
-        # if len(self.rgb_info.p) >= 7:
-        #     self.rgb_info.p[2] = self.img_width - rgb_info.p[2]
-        #     self.rgb_info.p[6] = self.img_height - rgb_info.p[6]
-        # # ---------------------------------
-
-
 
         header = copy.copy(rgb_info.header)
         self.rgb_info = rgb_info
