@@ -930,10 +930,10 @@ class SingleBody:
                 self.velocity_pub.publish(self.velocity_msg)
 
         if not self.use_depth:
-            translation = (torso_res[0], 0.9, torso_res[2])
+            translation = (torso_res[0], 0.65, torso_res[2])
         else:
             translation = (self.body_filtered_position[1],
-                           0.9,
+                           0.65,
                            self.body_filtered_position[0])
         self.tb.sendTransform(
             self.create_transform(
